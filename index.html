@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Academy STEM Magnet — 6th Grade Spaced Repetition</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #273449;
+    --accent: #22d3ee;
+    --accent2: #38bdf8;
+    --good: #4ade80;
+    --hard: #fbbf24;
+    --bad: #f87171;
+    --easy: #34d399;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 720px; }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    border: 1px solid #334155;
+  }
+  h1 { font-size: 1.6rem; margin-bottom: 6px; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+  .topic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin: 16px 0 24px;
+  }
+  .topic-btn {
+    background: var(--card2);
+    border: 1px solid #334155;
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .topic-btn:hover { border-color: var(--accent); }
+  .topic-btn.on { background: var(--accent); color: #06232b; border-color: var(--accent); font-weight: 600; }
+  button.primary {
+    background: var(--accent); color: #06232b; border: none;
+    padding: 12px 22px; border-radius: 10px; font-size: 1rem;
+    font-weight: 700; cursor: pointer; margin-top: 20px; width: 100%;
+  }
+  button.primary:hover { background: var(--accent2); }
+  button.ghost {
+    background: var(--card2); color: var(--text); border: 1px solid #334155;
+    padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 0.85rem;
+  }
+  button.ghost:hover { border-color: var(--accent); }
+  .stats { display: flex; gap: 12px; margin: 18px 0; flex-wrap: wrap; }
+  .stat {
+    background: var(--card2); border-radius: 12px; padding: 14px 18px; text-align: center; flex: 1; min-width: 90px;
+  }
+  .stat .num { font-size: 1.6rem; font-weight: 800; }
+  .stat .lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 0.9rem; color: var(--muted); }
+  .topic-tag { background: var(--accent2); color: #06232b; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+  .question { font-size: 1.15rem; line-height: 1.45; margin-bottom: 20px; font-weight: 500; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    background: var(--card2); border: 1px solid #334155; border-radius: 10px;
+    padding: 13px 16px; cursor: pointer; text-align: left; font-size: 0.95rem;
+    color: var(--text); transition: all 0.12s;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); }
+  .opt.correct { background: #14532d; border-color: var(--good); }
+  .opt.wrong { background: #7f1d1d; border-color: var(--bad); }
+  .opt:disabled { cursor: default; opacity: 0.85; }
+
+  .answer-panel { margin-top: 18px; display: none; }
+  .answer-panel.show { display: block; }
+  .explain {
+    padding: 14px; border-radius: 10px; font-size: 0.9rem; line-height: 1.5; margin-bottom: 14px;
+  }
+  .explain.good { background: #14532d; }
+  .explain.bad { background: #7f1d1d; }
+
+  .rate-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .rate-btn {
+    border: 1px solid #334155; border-radius: 10px; padding: 12px 6px; cursor: pointer;
+    font-weight: 700; font-size: 0.9rem; color: var(--text); background: var(--card2);
+    transition: all 0.12s; text-align: center;
+  }
+  .rate-btn .int { display: block; font-size: 0.7rem; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  .rate-btn:hover { border-color: var(--accent); }
+  .rate-btn.sel { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .rate-btn[data-q="0"]:hover, .rate-btn[data-q="0"].sel { border-color: var(--bad); }
+  .rate-btn[data-q="3"]:hover, .rate-btn[data-q="3"].sel { border-color: var(--hard); }
+  .rate-btn[data-q="4"]:hover, .rate-btn[data-q="4"].sel { border-color: var(--good); }
+  .rate-btn[data-q="5"]:hover, .rate-btn[data-q="5"].sel { border-color: var(--easy); }
+
+  .hidden { display: none; }
+  .muted { color: var(--muted); }
+  .list { margin-top: 16px; }
+  .list-item { background: var(--card2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; font-size: 0.9rem; display: flex; justify-content: space-between; gap: 10px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- SETUP -->
+  <div class="card" id="setup">
+    <h1>Science Academy STEM Magnet</h1>
+    <div class="sub">6th-grade SVEA study — spaced repetition (SM-2)</div>
+    <p class="muted" style="font-size:0.9rem; margin-bottom:6px;">Pick topics to study:</p>
+    <div class="topic-grid" id="topicGrid"></div>
+    <div class="row" style="margin-top:8px;">
+      <button class="ghost" id="btnAll" type="button">All topics</button>
+      <button class="ghost" id="btnClear" type="button">Clear</button>
+      <button class="ghost" id="btnReset" type="button" style="margin-left:auto; color:var(--bad);">Reset progress</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="dueCount">0</div><div class="lbl">Due today</div></div>
+      <div class="stat"><div class="num" id="newCount">0</div><div class="lbl">New</div></div>
+      <div class="stat"><div class="num" id="learnedCount">0</div><div class="lbl">Learned</div></div>
+      <div class="stat"><div class="num" id="totalReviews">0</div><div class="lbl">Reviews</div></div>
+    </div>
+    <button class="primary" id="studyBtn">Study Now</button>
+  </div>
+
+  <!-- STUDY -->
+  <div class="card hidden" id="study">
+    <div class="bar">
+      <span id="sessionPos">1 / 10</span>
+      <span class="topic-tag" id="topicTag">TOPIC</span>
+      <span id="sessionDue">Due: 0</span>
+    </div>
+    <div class="question" id="question">...</div>
+    <div class="options" id="options"></div>
+    <div class="answer-panel" id="answerPanel">
+      <div class="explain" id="explain"></div>
+      <p class="muted" style="font-size:0.8rem; margin-bottom:8px;">How well did you recall it?</p>
+      <div class="rate-row">
+        <button class="rate-btn" data-q="0">Again<span class="int">&lt; 10 min</span></button>
+        <button class="rate-btn" data-q="3">Hard<span class="int">1 day</span></button>
+        <button class="rate-btn" data-q="4">Good<span class="int">scaled</span></button>
+        <button class="rate-btn" data-q="5">Easy<span class="int">scaled</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div class="card hidden" id="done">
+    <h1>Session complete!</h1>
+    <div class="sub" id="doneSub"></div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="doneReviews">0</div><div class="lbl">Reviewed</div></div>
+      <div class="stat"><div class="num" id="doneCorrect">0</div><div class="lbl">Correct</div></div>
+      <div class="stat"><div class="num" id="doneAccuracy">0%</div><div class="lbl">Accuracy</div></div>
+    </div>
+    <h3 style="margin:20px 0 8px; font-size:0.95rem;">Upcoming reviews</h3>
+    <div class="list" id="upcomingList"></div>
+    <button class="primary" id="backBtn">Back to Setup</button>
+  </div>
+</div>
+
+<script>
+const TOPICS = {
+  bio:      "Life Science",
+  chem:     "Chemistry",
+  physics:  "Physics",
+  earth:    "Earth & Space",
+  method:   "Scientific Method",
+  math:     "Math"
+};
+
+const QUESTIONS = [
+  // ---- Life Science (Biology) ----
+  { t:"bio", q:"What is the basic unit of life in all living things?", o:["The cell","The atom","The organ","The tissue"], a:0, e:"All living organisms are made of one or more cells — the smallest unit of life." },
+  { t:"bio", q:"Which organelle is known as the 'powerhouse of the cell' because it produces energy?", o:["Nucleus","Mitochondria","Ribosome","Cell wall"], a:1, e:"Mitochondria convert food into energy (ATP) through cellular respiration." },
+  { t:"bio", q:"Which organelle contains the cell's genetic material (DNA)?", o:["Mitochondria","Ribosome","Nucleus","Chloroplast"], a:2, e:"The nucleus holds DNA and controls the cell's activities." },
+  { t:"bio", q:"Plant cells have a rigid outer layer that animal cells lack. What is it called?", o:["Cell membrane","Cell wall","Cytoplasm","Chloroplast"], a:1, e:"The cell wall gives plant cells structure and support." },
+  { t:"bio", q:"Photosynthesis uses sunlight, water, and carbon dioxide to make what?", o:["Oxygen and glucose","Nitrogen and sugar","Protein and water","Carbon dioxide and energy"], a:0, e:"Photosynthesis produces glucose (food) and releases oxygen." },
+  { t:"bio", q:"Where in a plant cell does photosynthesis take place?", o:["Mitochondria","Chloroplast","Nucleus","Vacuole"], a:1, e:"Chloroplasts contain chlorophyll, which captures light energy." },
+  { t:"bio", q:"What green pigment captures light energy during photosynthesis?", o:["Carotene","Hemoglobin","Chlorophyll","Melanin"], a:2, e:"Chlorophyll reflects green light and absorbs red/blue light." },
+  { t:"bio", q:"Heredity is the passing of what from parents to offspring?", o:["Habits","Traits","Food","Energy"], a:1, e:"Traits are passed down through genes on chromosomes." },
+  { t:"bio", q:"What molecule carries the genetic instructions for life?", o:["RNA","Protein","DNA","Lipid"], a:2, e:"DNA (deoxyribonucleic acid) contains the instructions for building an organism." },
+  { t:"bio", q:"In a food chain, what are producers?", o:["Animals that eat plants","Organisms that make their own food","Organisms that break down waste","Animals that eat other animals"], a:1, e:"Producers (like plants) make their own food via photosynthesis." },
+  { t:"bio", q:"What role do decomposers (like fungi and bacteria) play in an ecosystem?", o:["They make food from sunlight","They eat plants","They break down dead organisms and recycle nutrients","They hunt other animals"], a:2, e:"Decomposers recycle nutrients back into the soil." },
+  { t:"bio", q:"Which of the following is an example of a producer?", o:["A mushroom","A rabbit","A grass plant","A hawk"], a:2, e:"Grass is a producer — it makes food through photosynthesis." },
+  { t:"bio", q:"Roughly how many biological (organ) systems does the human body have?", o:["5","7","11","20"], a:2, e:"The human body has about 11 major organ systems (circulatory, respiratory, etc.)." },
+  { t:"bio", q:"Which body system transports oxygen and nutrients through the blood?", o:["Nervous system","Circulatory system","Digestive system","Skeletal system"], a:1, e:"The circulatory system moves blood, oxygen, and nutrients throughout the body." },
+  { t:"bio", q:"Which body system takes in oxygen and removes carbon dioxide?", o:["Respiratory system","Excretory system","Muscular system","Endocrine system"], a:0, e:"The respiratory system handles gas exchange in the lungs." },
+  { t:"bio", q:"An organism that has both plant and animal cell features would have a nucleus. Which statement is true about prokaryotes?", o:["They have a nucleus","They have no nucleus","They are always plants","They are always animals"], a:1, e:"Prokaryotes (like bacteria) lack a membrane-bound nucleus." },
+
+  // ---- Chemistry ----
+  { t:"chem", q:"What are the three common states of matter?", o:["Solid, liquid, gas","Solid, liquid, energy","Hot, cold, warm","Rock, water, air"], a:0, e:"Matter commonly exists as solid, liquid, and gas (plus plasma)." },
+  { t:"chem", q:"Which state of matter has a definite shape and definite volume?", o:["Gas","Liquid","Solid","Plasma"], a:2, e:"Solids keep their shape and volume." },
+  { t:"chem", q:"What happens to a substance when it changes from a liquid to a gas?", o:["Freezing","Evaporation","Condensation","Sublimation"], a:1, e:"Evaporation (or boiling) is liquid → gas." },
+  { t:"chem", q:"The smallest unit of an element that keeps its chemical properties is called a(n)...", o:["Molecule","Atom","Compound","Proton"], a:1, e:"An atom is the smallest unit of an element." },
+  { t:"chem", q:"What are the three subatomic particles in an atom?", o:["Proton, neutron, electron","Proton, photon, electron","Neutron, nucleus, ion","Ion, isotope, electron"], a:0, e:"Atoms contain protons (+), neutrons (neutral), and electrons (−)." },
+  { t:"chem", q:"Which subatomic particle has a negative charge?", o:["Proton","Neutron","Electron","Nucleus"], a:2, e:"Electrons carry a negative charge." },
+  { t:"chem", q:"The atomic number of an element equals the number of what in its nucleus?", o:["Neutrons","Electrons","Protons","Protons + neutrons"], a:2, e:"Atomic number = number of protons." },
+  { t:"chem", q:"The periodic table is organized by increasing what?", o:["Atomic mass","Atomic number","Size","Alphabetical order"], a:1, e:"Elements are arranged by increasing atomic number (number of protons)." },
+  { t:"chem", q:"Which of the following is a chemical element?", o:["Water","Salt","Oxygen","Sugar"], a:2, e:"Oxygen (O) is an element; water and salt are compounds." },
+  { t:"chem", q:"What is the chemical symbol for hydrogen?", o:["He","H","Hy","Hg"], a:1, e:"Hydrogen's symbol is H." },
+  { t:"chem", q:"A substance made of two or more different elements chemically bonded is called a...", o:["Mixture","Compound","Solution","Alloy"], a:1, e:"A compound (like H₂O) is two or more elements chemically bonded." },
+  { t:"chem", q:"In a chemical reaction, what are the starting substances called?", o:["Products","Reactants","Catalysts","Enzymes"], a:1, e:"Reactants are the starting materials; products are what they become." },
+  { t:"chem", q:"Which of the following is evidence that a chemical reaction has occurred?", o:["Change in color","Gas bubbles form","Temperature change","All of the above"], a:3, e:"Color change, gas formation, and temperature change all suggest a chemical reaction." },
+  { t:"chem", q:"On the pH scale, a value of 2 is considered what?", o:["Neutral","Basic","Acidic","Alkaline"], a:2, e:"pH below 7 is acidic; pH 2 is strongly acidic." },
+  { t:"chem", q:"On the pH scale, which value is neutral?", o:["0","7","14","1"], a:1, e:"pH 7 is neutral (pure water)." },
+  { t:"chem", q:"Bases (like soap) taste bitter and feel slippery. What pH range do bases fall in?", o:["Below 7","Exactly 7","Above 7","Always 0"], a:2, e:"Bases have a pH greater than 7." },
+
+  // ---- Physics (Kinematics/Forces) ----
+  { t:"physics", q:"What is a force?", o:["A push or a pull","A type of energy","A speed measurement","A chemical reaction"], a:0, e:"A force is any push or pull on an object." },
+  { t:"physics", q:"Newton's First Law says an object at rest stays at rest unless what happens?", o:["It gets lighter","An unbalanced force acts on it","It loses mass","Time passes"], a:1, e:"Objects resist changes in motion (inertia) unless acted on by an unbalanced force." },
+  { t:"physics", q:"What is the SI (metric) unit of force?", o:["Watt","Joule","Newton","Pascal"], a:2, e:"Force is measured in newtons (N)." },
+  { t:"physics", q:"Speed is calculated as distance divided by what?", o:["Mass","Time","Force","Velocity"], a:1, e:"Speed = distance ÷ time." },
+  { t:"physics", q:"If a car travels 60 kilometers in 2 hours, what is its average speed?", o:["30 km/h","60 km/h","120 km/h","15 km/h"], a:0, e:"60 km ÷ 2 h = 30 km/h." },
+  { t:"physics", q:"Which force pulls objects toward Earth's center?", o:["Friction","Magnetism","Gravity","Tension"], a:2, e:"Gravity is the force of attraction between objects with mass." },
+  { t:"physics", q:"Friction acts in which direction relative to motion?", o:["Same direction as motion","Opposite the direction of motion","Always upward","Always downward"], a:1, e:"Friction opposes (works against) motion." },
+  { t:"physics", q:"Newton's Second Law relates force, mass, and acceleration as F = ?", o:["m ÷ a","m × a","m + a","a ÷ m"], a:1, e:"Force = mass × acceleration (F = ma)." },
+  { t:"physics", q:"Newton's Third Law says every action has an equal and opposite...", o:["Force","Reaction","Mass","Speed"], a:1, e:"For every action there is an equal and opposite reaction." },
+  { t:"physics", q:"Energy of motion is called what?", o:["Potential energy","Kinetic energy","Chemical energy","Nuclear energy"], a:1, e:"Kinetic energy is the energy of a moving object." },
+  { t:"physics", q:"Stored energy due to position (like a ball held high) is called...", o:["Kinetic energy","Potential energy","Thermal energy","Sound energy"], a:1, e:"Potential energy is stored energy based on position." },
+
+  // ---- Earth & Space Science ----
+  { t:"earth", q:"What is the order of the planets from the Sun?", o:["Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune","Earth, Mars, Venus, Mercury, Jupiter, Saturn, Neptune, Uranus","Mercury, Earth, Venus, Mars, Saturn, Jupiter, Uranus, Neptune","Venus, Mercury, Earth, Mars, Saturn, Jupiter, Neptune, Uranus"], a:0, e:"Correct order: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune." },
+  { t:"earth", q:"Which planet is known as the 'Red Planet'?", o:["Venus","Jupiter","Mars","Mercury"], a:2, e:"Mars appears red due to iron oxide (rust) on its surface." },
+  { t:"earth", q:"What is the largest planet in our solar system?", o:["Saturn","Jupiter","Neptune","Earth"], a:1, e:"Jupiter is the largest planet in the solar system." },
+  { t:"earth", q:"What causes day and night on Earth?", o:["Earth orbiting the Sun","Earth rotating on its axis","The Moon orbiting Earth","The Sun moving around Earth"], a:1, e:"Earth's rotation on its axis causes day and night." },
+  { t:"earth", q:"Earth takes about how long to orbit (revolve around) the Sun once?", o:["24 hours","30 days","365 days","7 days"], a:2, e:"One revolution around the Sun takes about 365 days (one year)." },
+  { t:"earth", q:"What are the three main types of rocks?", o:["Igneous, sedimentary, metamorphic","Igneous, mineral, crystal","Sand, clay, gravel","Hard, soft, medium"], a:0, e:"The three rock types are igneous, sedimentary, and metamorphic." },
+  { t:"earth", q:"Sedimentary rocks form from what?", o:["Cooled lava","Layers of sediment pressed together","Extreme heat and pressure","Melting rock"], a:1, e:"Sedimentary rocks form from compacted and cemented sediments." },
+  { t:"earth", q:"Metamorphic rock forms when existing rock is changed by what?", o:["Freezing","Erosion","Heat and pressure","Wind"], a:2, e:"Metamorphic rocks form from heat and pressure (e.g., limestone → marble)." },
+  { t:"earth", q:"The movement of Earth's tectonic plates causes what?", o:["Earthquakes and volcanoes","Tides","Day and night","Weather"], a:0, e:"Plate movement at boundaries causes earthquakes and volcanic activity." },
+  { t:"earth", q:"What layer of the atmosphere do we live in and where weather occurs?", o:["Stratosphere","Troposphere","Mesosphere","Exosphere"], a:1, e:"The troposphere is the lowest layer and contains most weather." },
+  { t:"earth", q:"The water cycle includes evaporation, condensation, and...", o:["Erosion","Precipitation","Sedimentation","Sublimation only"], a:1, e:"Precipitation (rain/snow) returns water to Earth's surface." },
+  { t:"earth", q:"What instrument measures air pressure?", o:["Thermometer","Barometer","Anemometer","Hygrometer"], a:1, e:"A barometer measures atmospheric (air) pressure." },
+
+  // ---- Scientific Method ----
+  { t:"method", q:"What is the first step of the scientific method?", o:["Form a conclusion","Make an observation / ask a question","Analyze data","Conduct an experiment"], a:1, e:"You begin by observing and asking a question." },
+  { t:"method", q:"A testable prediction or educated guess is called a...", o:["Theory","Law","Hypothesis","Conclusion"], a:2, e:"A hypothesis is a testable, proposed explanation." },
+  { t:"method", q:"In an experiment, the variable you change on purpose is the...", o:["Dependent variable","Independent variable","Controlled variable","Constant"], a:1, e:"The independent variable is what you deliberately change." },
+  { t:"method", q:"The variable you measure as a result is the...", o:["Independent variable","Dependent variable","Control group","Hypothesis"], a:1, e:"The dependent variable is what responds to (depends on) the change." },
+  { t:"method", q:"What is a control group in an experiment?", o:["The group that gets the treatment","The group that is unchanged, used for comparison","The group that analyzes data","The group that writes the report"], a:1, e:"A control group is kept under normal conditions to compare against." },
+  { t:"method", q:"Why is it important to keep all variables except one constant?", o:["To save time","To make the experiment fair and valid","To make the experiment longer","It is not important"], a:1, e:"Controlling variables ensures only one factor is tested." },
+  { t:"method", q:"After analyzing data, what should a scientist do next?", o:["Ignore the data","Draw a conclusion","Change the data","Publish without review"], a:1, e:"The next step is drawing a conclusion based on the evidence." },
+
+  // ---- Math ----
+  { t:"math", q:"What is 3/4 as a decimal?", o:["0.34","0.75","0.25","3.4"], a:1, e:"3 ÷ 4 = 0.75." },
+  { t:"math", q:"What is 0.5 as a fraction in simplest form?", o:["5/10","1/2","5/100","1/5"], a:1, e:"0.5 = 5/10 = 1/2." },
+  { t:"math", q:"What is 25% as a fraction?", o:["1/4","1/25","2/5","1/2"], a:0, e:"25% = 25/100 = 1/4." },
+  { t:"math", q:"Solve for x: x + 7 = 15", o:["x = 22","x = 8","x = 7","x = 5"], a:1, e:"x = 15 − 7 = 8." },
+  { t:"math", q:"Solve for x: 4x = 28", o:["x = 4","x = 7","x = 28","x = 11"], a:1, e:"x = 28 ÷ 4 = 7." },
+  { t:"math", q:"What is (−3) × (−4)?", o:["−12","12","7","−7"], a:1, e:"A negative times a negative is positive: 12." },
+  { t:"math", q:"What is −5 + 3?", o:["8","−8","−2","2"], a:2, e:"−5 + 3 = −2." },
+  { t:"math", q:"What is the area of a rectangle that is 6 cm long and 4 cm wide?", o:["10 cm²","20 cm²","24 cm²","12 cm²"], a:2, e:"Area = length × width = 6 × 4 = 24 cm²." },
+  { t:"math", q:"What is the circumference of a circle with radius 5 cm? (Use π ≈ 3.14)", o:["15.7 cm","31.4 cm","78.5 cm","10 cm"], a:1, e:"C = 2πr = 2 × 3.14 × 5 = 31.4 cm." },
+  { t:"math", q:"What is 3² (3 squared)?", o:["6","9","12","8"], a:1, e:"3² = 3 × 3 = 9." },
+  { t:"math", q:"What is the square root of 64?", o:["6","7","8","32"], a:2, e:"8 × 8 = 64, so √64 = 8." },
+  { t:"math", q:"If a shirt costs $40 and is 25% off, what is the sale price?", o:["$10","$30","$35","$20"], a:1, e:"25% of $40 = $10 off, so $40 − $10 = $30." },
+  { t:"math", q:"Which point is the origin on the coordinate plane?", o:["(1,1)","(0,0)","(0,1)","(1,0)"], a:1, e:"The origin is (0,0), where the x- and y-axes meet." },
+  { t:"math", q:"Convert 150 cm to meters.", o:["1.5 m","15 m","0.15 m","1500 m"], a:0, e:"100 cm = 1 m, so 150 cm = 1.5 m." },
+  { t:"math", q:"A ratio of 2:3 means that for every 2 of one thing there are how many of another?", o:["2","3","5","6"], a:1, e:"A 2:3 ratio pairs 2 of one quantity with 3 of another." },
+  { t:"math", q:"If y = 2x + 3, what is y when x = 4?", o:["8","11","9","7"], a:1, e:"y = 2(4) + 3 = 8 + 3 = 11." },
+];
+
+// ---------- Spaced Repetition (SM-2) ----------
+const DAY = 86400000;
+const STORE_KEY = "stem_srs_v1";
+const NEW_PER_DAY = 10;
+
+function defaultCard() {
+  return { interval: 0, ease: 2.5, reps: 0, due: 0, lapses: 0, reviews: 0, good: 0 };
+}
+
+let DB = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { cards: {}, settings: { topics: Object.keys(TOPICS) } };
+}
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+}
+
+function cardState(i) {
+  if (!DB.cards[i]) DB.cards[i] = defaultCard();
+  return DB.cards[i];
+}
+
+// q = quality 0..5  (0 again, 3 hard, 4 good, 5 easy)
+function schedule(card, q) {
+  const now = Date.now();
+  card.reviews++;
+  if (q >= 3) {
+    if (card.reps === 0) card.interval = 1;
+    else if (card.reps === 1) card.interval = 6;
+    else card.interval = Math.round(card.interval * card.ease);
+    card.reps++;
+    card.good++;
+  } else {
+    card.reps = 0;
+    card.interval = 0;
+    card.lapses++;
+    card.due = now + 10 * 60000; // again in 10 min
+  }
+  card.ease = card.ease + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+  if (card.ease < 1.3) card.ease = 1.3;
+  if (q >= 3) card.due = now + card.interval * DAY;
+  card.lastQ = q;
+}
+
+function dueNow(i) {
+  const c = DB.cards[i];
+  return c && c.due > 0 && c.due <= Date.now();
+}
+
+// ---------- Session state ----------
+const session = {
+  queue: [],      // array of question indices
+  pos: 0,
+  reviewed: 0,
+  correct: 0,
+  ids: new Set()  // track session stats
+};
+
+const $ = id => document.getElementById(id);
+
+function selectedTopics() {
+  return [...document.querySelectorAll("#topicGrid .topic-btn.on")].map(b => b.dataset.topic);
+}
+
+function buildTopicGrid() {
+  const grid = $("topicGrid");
+  grid.innerHTML = "";
+  const topics = DB.settings.topics || Object.keys(TOPICS);
+  for (const [key, label] of Object.entries(TOPICS)) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "topic-btn" + (topics.includes(key) ? " on" : "");
+    b.dataset.topic = key;
+    b.textContent = label;
+    b.addEventListener("click", () => b.classList.toggle("on"));
+    grid.appendChild(b);
+  }
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function refreshStats() {
+  const topics = new Set(selectedTopics());
+  let due = 0, isNew = 0, learned = 0, reviews = 0;
+  QUESTIONS.forEach((q, i) => {
+    if (!topics.has(q.t)) return;
+    const c = DB.cards[i];
+    if (!c) { isNew++; return; }
+    reviews += c.reviews;
+    if (c.due > 0 && c.due <= Date.now()) due++;
+    if (c.reps > 0) learned++;
+  });
+  $("dueCount").textContent = due;
+  $("newCount").textContent = isNew;
+  $("learnedCount").textContent = learned;
+  $("totalReviews").textContent = reviews;
+}
+
+function buildQueue() {
+  const topics = new Set(selectedTopics());
+  const due = [];
+  const fresh = [];
+  QUESTIONS.forEach((q, i) => {
+    if (!topics.has(q.t)) return;
+    if (dueNow(i)) due.push(i);
+    else if (!DB.cards[i]) fresh.push(i);
+  });
+  // introduce new cards up to NEW_PER_DAY
+  const newToday = shuffle(fresh).slice(0, NEW_PER_DAY);
+  session.queue = shuffle(due).concat(newToday);
+  session.pos = 0;
+  session.reviewed = 0;
+  session.correct = 0;
+}
+
+function startStudy() {
+  if (selectedTopics().length === 0) { alert("Please select at least one topic."); return; }
+  DB.settings.topics = selectedTopics();
+  save();
+  buildQueue();
+  if (session.queue.length === 0) { finishSession(); return; }
+  $("setup").classList.add("hidden");
+  $("done").classList.add("hidden");
+  $("study").classList.remove("hidden");
+  renderCard();
+}
+
+function renderCard() {
+  const i = session.queue[session.pos];
+  const q = QUESTIONS[i];
+  $("sessionPos").textContent = `${session.pos + 1} / ${session.queue.length}`;
+  $("topicTag").textContent = TOPICS[q.t];
+  $("sessionDue").textContent = `Due: ${session.queue.length - session.pos - 1} left`;
+  $("question").textContent = q.q;
+
+  const opts = $("options");
+  opts.innerHTML = "";
+  q.o.forEach((text, idx) => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.textContent = text;
+    b.addEventListener("click", () => reveal(idx));
+    opts.appendChild(b);
+  });
+  $("answerPanel").classList.remove("show");
+}
+
+function reveal(chosenIdx) {
+  const i = session.queue[session.pos];
+  const q = QUESTIONS[i];
+  const isCorrect = (chosenIdx === q.a);
+  if (isCorrect) session.correct++;
+
+  const buttons = [...document.querySelectorAll("#options .opt")];
+  q.o.forEach((text, idx) => {
+    if (idx === q.a) buttons[idx].classList.add("correct");
+    else if (idx === chosenIdx) buttons[idx].classList.add("wrong");
+  });
+  buttons.forEach(b => b.disabled = true);
+
+  const ex = $("explain");
+  ex.textContent = (isCorrect ? "Correct! " : "Incorrect. ") + (q.e || "");
+  ex.className = "explain " + (isCorrect ? "good" : "bad");
+
+  // suggest a rating
+  const suggested = isCorrect ? 4 : 0;
+  document.querySelectorAll(".rate-btn").forEach(b => {
+    b.classList.toggle("sel", parseInt(b.dataset.q, 10) === suggested);
+  });
+
+  $("answerPanel").classList.add("show");
+}
+
+function rate(q) {
+  const i = session.queue[session.pos];
+  const card = cardState(i);
+  schedule(card, q);
+  save();
+  session.reviewed++;
+
+  // "Again" (q=0) re-queues the card later this session for a retry
+  if (q === 0) {
+    const retryAt = Math.min(session.pos + 3, session.queue.length);
+    session.queue.splice(retryAt, 0, i);
+  }
+
+  session.pos++;
+  if (session.pos >= session.queue.length) {
+    finishSession();
+  } else {
+    renderCard();
+  }
+}
+
+function finishSession() {
+  $("study").classList.add("hidden");
+  $("done").classList.remove("hidden");
+  $("doneReviews").textContent = session.reviewed;
+  $("doneCorrect").textContent = session.correct;
+  const acc = session.reviewed ? Math.round((session.correct / session.reviewed) * 100) : 0;
+  $("doneAccuracy").textContent = acc + "%";
+  $("doneSub").textContent = session.reviewed
+    ? "Nice work! Come back tomorrow to review what's due."
+    : "Nothing is due right now. New cards and reviews will appear on schedule.";
+
+  // upcoming list
+  const topics = new Set(DB.settings.topics || Object.keys(TOPICS));
+  const buckets = { tomorrow: [], soon: [], later: [] };
+  const now = Date.now();
+  QUESTIONS.forEach((q, i) => {
+    if (!topics.has(q.t)) return;
+    const c = DB.cards[i];
+    if (!c || c.due <= now) return;
+    const d = Math.round((c.due - now) / DAY);
+    if (d <= 1) buckets.tomorrow.push(i);
+    else if (d <= 7) buckets.soon.push(i);
+    else buckets.later.push(i);
+  });
+  const list = $("upcomingList");
+  list.innerHTML = "";
+  const rows = [
+    ["Tomorrow (1 day)", buckets.tomorrow],
+    ["Next 2–7 days", buckets.soon],
+    ["Later", buckets.later]
+  ];
+  rows.forEach(([label, arr]) => {
+    if (arr.length === 0) return;
+    const div = document.createElement("div");
+    div.className = "list-item";
+    div.innerHTML = `<span>${label}</span><strong>${arr.length}</strong>`;
+    list.appendChild(div);
+  });
+  if (list.children.length === 0) {
+    list.innerHTML = '<div class="muted">No scheduled reviews yet — study some new cards!</div>';
+  }
+  refreshStats();
+}
+
+// ---------- events ----------
+$("btnAll").addEventListener("click", () => document.querySelectorAll("#topicGrid .topic-btn").forEach(b => b.classList.add("on")));
+$("btnClear").addEventListener("click", () => document.querySelectorAll("#topicGrid .topic-btn").forEach(b => b.classList.remove("on")));
+$("btnReset").addEventListener("click", () => {
+  if (confirm("Reset all spaced repetition progress?")) {
+    DB = { cards: {}, settings: { topics: selectedTopics() } };
+    save();
+    refreshStats();
+  }
+});
+$("studyBtn").addEventListener("click", startStudy);
+$("backBtn").addEventListener("click", () => {
+  $("done").classList.add("hidden");
+  $("setup").classList.remove("hidden");
+  refreshStats();
+});
+document.querySelectorAll(".rate-btn").forEach(b => b.addEventListener("click", () => rate(parseInt(b.dataset.q, 10))));
+
+buildTopicGrid();
+refreshStats();
+</script>
+</body>
+</html>
