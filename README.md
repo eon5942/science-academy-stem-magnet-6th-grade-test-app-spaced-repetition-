@@ -6,7 +6,7 @@ A single-file, browser-based study app to prepare for the **Science-Specific Ver
 
 It's a **spaced repetition** study tool (Anki/SuperMemo-style) built on the school's official 6th-grade preparation topics. Each question is treated as a "card" with its own review schedule, so hard material comes back sooner and easy material gets pushed further out — fighting the "forgetting curve" to move facts into long-term memory.
 
-- **80+ questions** covering the official topic list: Life Science, Chemistry, Physics, Earth & Space Science, Scientific Method, and Math
+- **2,300+ questions** covering the official topic list: Life Science, Chemistry, Physics, Earth & Space Science, Scientific Method, and Math
 - **SM-2 scheduling** (the classic SuperMemo algorithm): rate each card **Again / Hard / Good / Easy** and the next review date is computed automatically
 - **Progress persists** in your browser's `localStorage`, so it keeps working as a real multi-day routine
 - **New cards** are introduced gradually (10 per day)
@@ -35,6 +35,24 @@ Topics come from the school's published 6th-grade list: intro to biology/chemist
 4. Come back daily. The app will show you exactly what's due.
 
 No server, no install, no dependencies — just one HTML file. Progress is stored locally in your browser.
+
+## Reproducible dev environment (Nix)
+
+The repo ships a Nix [flake](flake.nix) that pins the exact toolchain used to build/test this project, so anyone can reproduce the same environment on any machine (including NixOS).
+
+It provides the **LÖVE** game engine (Love2D) and **Unity Hub** (the launcher for the Unity engine):
+
+```sh
+# enter a shell with love + unityhub on PATH
+nix develop
+
+# or install them into your user profile permanently
+nix profile install .#love .#unityhub
+```
+
+- `love` (LÖVE) `11.5` — 2D game engine
+- `unityhub` `3.19.5` — Unity Hub; install a specific Unity Editor version from within the Hub (requires a Unity account/license)
+- `flake.lock` pins the exact `nixpkgs` commit, so builds are fully reproducible
 
 ## Running on GitHub Pages
 
